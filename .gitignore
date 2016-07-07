@@ -1,0 +1,3 @@
+scan-the-slices/.env
+scan-the-slices/node_modules/
+scan-the-slices/bin/s3/*

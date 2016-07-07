@@ -7,8 +7,7 @@
     "test": "echo \"Sorry, no tests #Labs\""
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Financial-Times/FT-Labs-AWS-Archives.git"
+    "type": "git"
   },
   "keywords": [
     "FTLabs",

@@ -1,0 +1,29 @@
+{
+  "name": "slice-scanner",
+  "version": "0.0.1",
+  "description": "A simple Node app for a taking the contents of an S3 bucket, running them through Tesseract OCR, and placing the results in a database. ",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Sorry, no tests #Labs\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Financial-Times/FT-Labs-AWS-Archives.git"
+  },
+  "keywords": [
+    "FTLabs",
+    "AWS"
+  ],
+  "author": "Sean M. Tracey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Financial-Times/FT-Labs-AWS-Archives/issues"
+  },
+  "homepage": "https://github.com/Financial-Times/FT-Labs-AWS-Archives#readme",
+  "devDependencies": {
+    "s3rver": "^1.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^2.0.0"
+  }
+}

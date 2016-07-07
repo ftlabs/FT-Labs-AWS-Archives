@@ -4,6 +4,7 @@
   "description": "A simple Node app for a taking the contents of an S3 bucket, running them through Tesseract OCR, and placing the results in a database. ",
   "main": "main.js",
   "scripts": {
+    "start": "node main.js",
     "test": "echo \"Sorry, no tests #Labs\""
   },
   "repository": {
@@ -23,6 +24,7 @@
     "s3rver": "^1.0.2"
   },
   "dependencies": {
+    "debug": "^2.2.0",
     "dotenv": "^2.0.0"
   }
 }

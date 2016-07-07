@@ -3,3 +3,4 @@ scan-the-slices/node_modules/
 scan-the-slices/bin/s3/*
 scan-the-slices/npm-debug.log
 scan-the-slices/.DS_Store
+scan-the-slices/bin/tmp/*

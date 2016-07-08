@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
+    "prepare": "mkdir -p ./bin && mkdir -p ./bin/s3 && mkdir -p ./bin/tmp && mkdir -p ./bin/tmp/out",
     "test": "echo \"Sorry, no tests #Labs\""
   },
   "repository": {
@@ -24,7 +25,9 @@
     "s3rver": "^1.0.2"
   },
   "dependencies": {
+    "aws-sdk": "^2.4.5",
     "debug": "^2.2.0",
-    "dotenv": "^2.0.0"
+    "dotenv": "^2.0.0",
+    "uuid": "^2.0.2"
   }
 }

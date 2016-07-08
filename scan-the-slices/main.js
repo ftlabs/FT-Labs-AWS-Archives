@@ -62,12 +62,21 @@ function scan(doc){
 
 	return tesseract(doc, true)
 		.then(res => {
-			// console.log(res);
-			// We should process the result here.
-			const formattedText = res[0];
-			const boundedText = res[1];
+			// Join words that are broken over two lines and remove all new lines from the document
+			const formattedText = res[0].replace(/(?:-\n)/g, ' ').replace(/(?:\r\n|\r|\n)/g, ' ');;
+			var boundedText = res[1].split('\n');
 
-			return res;
+			boundedText.pop();
+			boundedText = boundedText.map(aBit => {
+				aBit = aBit.split(' ');
+				aBit.pop();
+				return {
+					"letter" : aBit.shift(),
+					"bounds" : aBit
+				};
+			});
+
+			return [formattedText, boundedText];
 
 		})
 		.catch(err => {
@@ -98,7 +107,11 @@ if(resourceID !== undefined){
 			console.log(`File recieved from S3 and written to ${destination}`);
 			scan(destination)
 				.then(res => {
-					console.log(res);
+					// res[0] is the plaintext result of the OCR scan
+					// res[1] is an array of objects describing the location of individual letters in the document
+					
+					console.log(res[0]);
+
 				})
 			;
 		});

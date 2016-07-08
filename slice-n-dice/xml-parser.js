@@ -2,10 +2,11 @@ var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs')),
   xml2js = Promise.promisifyAll(require('xml2js'))
   moment = require('moment');
+var path = require('path');
 
 function run(directory){
   var parser = new xml2js.Parser();
-  return fs.readFileAsync(directory + 'FTDA-1939-0216.xml')
+  return fs.readFileAsync(path.resolve(directory, 'FTDA-1939-0216.xml'))
     .then(function(result){
       return parser.parseStringAsync(result);
     })

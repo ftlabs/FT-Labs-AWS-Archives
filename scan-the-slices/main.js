@@ -19,9 +19,13 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 
 }
 
-tesseract('./bin/s3/FTDA-1940-0706-0002-003.jpg')
+tesseract('./bin/s3/FTDA-1940-0706-0002-003.jpg', true)
 	.then(res => {
 		console.log(res);
+
+		const formattedText = res[0];
+		const boundedText = res[1];
+
 	})
 	.catch(err => {
 		console.log(err);

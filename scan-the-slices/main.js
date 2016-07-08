@@ -59,28 +59,34 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 const resourceID = argv.src;
 
 function scan(doc){
-
+	console.log(doc)
 	return tesseract(doc, true)
 		.then(res => {
+			fs.unlink(doc);
 			// Join words that are broken over two lines and remove all new lines from the document
-			const formattedText = res[0].replace(/(?:-\n)/g, ' ').replace(/(?:\r\n|\r|\n)/g, ' ');;
+
+			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
 			var boundedText = res[1].split('\n');
 
 			boundedText.pop();
-			boundedText = boundedText.map(aBit => {
-				aBit = aBit.split(' ');
-				aBit.pop();
+			boundedText = boundedText.map(letterData => {
+				letterData = letterData.split(' ');
+				letterData.pop();
 				return {
-					"letter" : aBit.shift(),
-					"bounds" : aBit
+					'letter' : letterData.shift(),
+					'bounds' : letterData
 				};
 			});
 
-			return [formattedText, boundedText];
+			return {
+				plain : formattedText, 
+				bounds : boundedText
+			};
 
 		})
 		.catch(err => {
 			console.log(err);
+			fs.unlink(doc);
 		})
 	;
 
@@ -107,10 +113,9 @@ if(resourceID !== undefined){
 			console.log(`File recieved from S3 and written to ${destination}`);
 			scan(destination)
 				.then(res => {
-					// res[0] is the plaintext result of the OCR scan
-					// res[1] is an array of objects describing the location of individual letters in the document
-					
-					console.log(res[0]);
+
+					console.log(res);
+					// Send the data off to a database
 
 				})
 			;

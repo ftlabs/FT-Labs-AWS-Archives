@@ -59,19 +59,34 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 const resourceID = argv.src;
 
 function scan(doc){
-
+	console.log(doc)
 	return tesseract(doc, true)
 		.then(res => {
-			// console.log(res);
-			// We should process the result here.
-			const formattedText = res[0];
-			const boundedText = res[1];
+			fs.unlink(doc);
+			// Join words that are broken over two lines and remove all new lines from the document
 
-			return res;
+			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
+			var boundedText = res[1].split('\n');
+
+			boundedText.pop();
+			boundedText = boundedText.map(letterData => {
+				letterData = letterData.split(' ');
+				letterData.pop();
+				return {
+					'letter' : letterData.shift(),
+					'bounds' : letterData
+				};
+			});
+
+			return {
+				plain : formattedText, 
+				bounds : boundedText
+			};
 
 		})
 		.catch(err => {
 			console.log(err);
+			fs.unlink(doc);
 		})
 	;
 
@@ -98,7 +113,10 @@ if(resourceID !== undefined){
 			console.log(`File recieved from S3 and written to ${destination}`);
 			scan(destination)
 				.then(res => {
+
 					console.log(res);
+					// Send the data off to a database
+
 				})
 			;
 		});

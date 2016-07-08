@@ -5,7 +5,10 @@
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
-    "test": "echo \"Sorry, no tests #Labs\""
+    "prepare": "mkdir -p ./bin && mkdir -p ./bin/s3 && mkdir -p ./bin/tmp && mkdir -p ./bin/tmp/out",
+    "test": "echo \"Sorry, no tests #Labs\"",
+    "clean": "rm -rf ./bin && npm run prepare",
+    "postinstall" : "npm run prepare"
   },
   "repository": {
     "type": "git"
@@ -24,7 +27,11 @@
     "s3rver": "^1.0.2"
   },
   "dependencies": {
+    "aws-sdk": "^2.4.5",
     "debug": "^2.2.0",
-    "dotenv": "^2.0.0"
+    "dotenv": "^2.0.0",
+    "node-babel": "^0.1.2",
+    "uuid": "^2.0.2",
+    "yargs": "^4.7.1"
   }
 }

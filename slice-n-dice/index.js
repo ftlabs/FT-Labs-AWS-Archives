@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 var xmlParser = require('./xml-parser');
 var imageProcessing = require('./image-processing');

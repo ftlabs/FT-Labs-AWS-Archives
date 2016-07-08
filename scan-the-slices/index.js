@@ -22,7 +22,7 @@ const S3config = {
 const S3 = new AWS.S3(S3config);
 
 if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
-	
+
 	// We're going to fire up a fake S3 server
 	debug("In development environment. Firing up fake S3 server...");
 
@@ -54,13 +54,14 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 
 } else {
 	First = new Promise.resolve();
+	tesseract.configure({
+		tessPath : './resources/tesseract'
+	});
 }
-
-const resourceID = argv.src;
 
 function scan(doc){
 	console.log(doc)
-	return tesseract(doc, true)
+	return tesseract.scan(doc, true)
 		.then(res => {
 			fs.unlink(doc);
 			// Join words that are broken over two lines and remove all new lines from the document
@@ -92,35 +93,41 @@ function scan(doc){
 
 }
 
-if(resourceID !== undefined){
-	// FTDA-1940-0706-0002-003
-	// Go and get the image from the URL, store it locally, and then pass it to tesseract
+exports.handler = function(event, context){
+	
+	const resourceID = event.key1;
 
-	First.then(function(){
-		const destination = `./bin/tmp/in/${resourceID}.jpg`;
-		const file = fs.createWriteStream(destination);
-		S3.getObject({
-			Bucket : 'articles',
-			Key : resourceID
-		}).createReadStream().pipe(file);
+	if(resourceID !== undefined){
+		// FTDA-1940-0706-0002-003
+		// Go and get the image from the URL, store it locally, and then pass it to tesseract
 
-		file.on('error', function(e){
-			console.log("error event");
-			console.log(e);
+		First.then(function(){
+			const destination = `./bin/tmp/in/${resourceID}.jpg`;
+			const file = fs.createWriteStream(destination);
+			S3.getObject({
+				Bucket : 'articles',
+				Key : resourceID
+			}).createReadStream().pipe(file);
+
+			file.on('error', function(e){
+				console.log("error event");
+				console.log(e);
+			});
+
+			file.on('close', function(e){
+				console.log(`File recieved from S3 and written to ${destination}`);
+				scan(destination)
+					.then(res => {
+
+						console.log(res);
+						// Send the data off to a database
+
+					})
+				;
+			});
+
 		});
 
-		file.on('close', function(e){
-			console.log(`File recieved from S3 and written to ${destination}`);
-			scan(destination)
-				.then(res => {
-
-					console.log(res);
-					// Send the data off to a database
-
-				})
-			;
-		});
-
-	});
+	}
 
 }

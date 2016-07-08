@@ -5,6 +5,8 @@ const fs = require('fs');
 
 // 'batch.nochop', 'makebox'
 
+let tessPath = 'tesseract';
+
 const tesseract = function(source, bounds){
 
 	return new Promise( (resolve, reject) => {
@@ -22,7 +24,7 @@ const tesseract = function(source, bounds){
 
 		debug(args);
 
-		const tess = spawn('tesseract', args);
+		const tess = spawn(tessPath, args);
 		const buff = [];
 
 		tess.on('close', (code) => {
@@ -42,16 +44,25 @@ const tesseract = function(source, bounds){
 
 }
 
-module.exports = function(source, bounds=false){
+module.exports = {
+	configure : function(options){
+		
+		if(options.tessPath !== undefined){
+			tessPath = options.tessPath;
+		}
 
-	const scans = [];
+	},
+	scan : function(source, bounds=false){
 
-	scans.push(tesseract(source, false));
+		const scans = [];
 
-	if(bounds === true){
-		scans.push(tesseract(source, true));
+		scans.push(tesseract(source, false));
+
+		if(bounds === true){
+			scans.push(tesseract(source, true));
+		}
+
+		return Promise.all(scans);
+
 	}
-
-	return Promise.all(scans);
-
-}
+};

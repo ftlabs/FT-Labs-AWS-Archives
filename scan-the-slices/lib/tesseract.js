@@ -26,11 +26,14 @@ const tesseract = function(source, bounds){
 		const buff = [];
 
 		tess.on('close', (code) => {
+			const outputDestination = `./bin/tmp/out/${randomOut}.${format}`
+
 			if(code === 1){
-				reject("Something went wrong with Tesseract");
-			} else if(code === 0){
-				fs.readFile(`./bin/tmp/out/${randomOut}.${format}`, 'utf8', function (err, data) {
+				reject('Something went wrong with Tesseract');
+			} else if(code === 0){	
+				fs.readFile(outputDestination, 'utf8', function (err, data) {
 					resolve( data );
+					fs.unlink(outputDestination);
 				});
 			}
 		});

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node main.js",
     "prepare": "mkdir -p ./bin && mkdir -p ./bin/s3 && mkdir -p ./bin/tmp && mkdir -p ./bin/tmp/out",
-    "test": "echo \"Sorry, no tests #Labs\""
+    "test": "echo \"Sorry, no tests #Labs\"",
+    "clean": "rm -rf ./bin && npm run prepare",
+    "postinstall" : "npm run prepare"
   },
   "repository": {
     "type": "git"
@@ -28,6 +30,8 @@
     "aws-sdk": "^2.4.5",
     "debug": "^2.2.0",
     "dotenv": "^2.0.0",
-    "uuid": "^2.0.2"
+    "node-babel": "^0.1.2",
+    "uuid": "^2.0.2",
+    "yargs": "^4.7.1"
   }
 }

@@ -1,6 +1,9 @@
+require('node-babel')();
+
 const dotenv = require('dotenv').config();
-const fs = require('fs');
+
 const S3rver = require('s3rver');
+const argv = require('yargs').argv; 
 const debug = require('debug')('scan-the-slices:main.js');
 
 const tesseract = require('./lib/tesseract');
@@ -19,15 +22,23 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 
 }
 
-tesseract('./bin/s3/FTDA-1940-0706-0002-003.jpg', true)
-	.then(res => {
-		console.log(res);
+const sourceDocument = argv.src;
 
-		const formattedText = res[0];
-		const boundedText = res[1];
+debug(sourceDocument);
 
-	})
-	.catch(err => {
-		console.log(err);
-	})
-;
+if(sourceDocument !== undefined){
+	// ./bin/s3/FTDA-1940-0706-0002-003.jpg
+	tesseract(sourceDocument, true)
+		.then(res => {
+			console.log(res);
+
+			const formattedText = res[0];
+			const boundedText = res[1];
+
+		})
+		.catch(err => {
+			console.log(err);
+		})
+	;
+
+}

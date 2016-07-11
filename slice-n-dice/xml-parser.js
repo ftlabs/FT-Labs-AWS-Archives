@@ -4,9 +4,9 @@ var fs = Promise.promisifyAll(require('fs')),
   moment = require('moment');
 var path = require('path');
 
-function run(directory){
+function run(input){
   var parser = new xml2js.Parser();
-  return fs.readFileAsync(path.resolve(directory, 'FTDA-1939-0216.xml'))
+  return fs.readFileAsync(input)
     .then(function(result){
       return parser.parseStringAsync(result);
     })
@@ -20,7 +20,11 @@ function run(directory){
         edition: issue.ed
       };
 
-      var articles = issue.page[0].article;
+      var articles = [];
+      for (var i = 0 ; i < issue.page.length ; i++){
+        articles = articles.concat(issue.page[i].article);
+      }
+
       return {
         meta: meta,
         articles: articles

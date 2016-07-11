@@ -1,25 +1,33 @@
 #!/usr/bin/env node
 
-var home = require('home');
 var co = require('co');
-var workingDirectory = require('process').cwd();
+var walk = require('walk');
 
 var xmlParser = require('./xml-parser');
 var imageProcessing = require('./image-processing');
-var directory = home.resolve('~/Documents/1939/19390216/');
-var output = './output/images/';
 
-// errors can be try/catched
-co(function *(){
-  var data = yield xmlParser.run(directory);
-  for (i in data.articles) {
-    imageProcessing.process(directory, data.articles[i], output);
+var argv = require('yargs')
+    .usage('Usage: $0 --scan [directory] --output [num]')
+    .demand(['scan','output'])
+    .argv;
+
+var scan = argv.scan;
+var output = argv.output;
+
+console.log(scan);
+var walker = walk.walk(scan, {followLinks: false});
+
+walker.on("file", function(root, fileStat, next){
+  if (fileStat.name.endsWith('.xml')){
+    co(function * (){
+      var data = yield xmlParser.run(root + '/' + fileStat.name);
+      console.log('Processing', data.meta);
+      for (i in data.articles) {
+        imageProcessing.process(root, data.articles[i], output);
+      }
+    }).catch(function(err){
+      console.log(err);
+    });
   }
-}).catch(onerror);
-
-function onerror(err) {
-  // log any uncaught errors
-  // co will not throw any errors you do not handle!!!
-  // HANDLE ALL YOUR ERRORS!!!
-  console.error(err.stack);
-}
+  next();
+});

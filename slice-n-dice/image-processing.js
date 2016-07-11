@@ -1,33 +1,47 @@
 var Promise = require('bluebird');
 var gm = require('gm');
-var xmlParser = Promise.promisifyAll(require('./xml-parser'));
-var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
 var co = require('co');
+var tmp = require('tmp');
 
+var xmlParser = Promise.promisifyAll(require('./xml-parser'));
+var fs = Promise.promisifyAll(require('fs'));
 Promise.promisifyAll(gm.prototype);
 
-var next = co.wrap(function *(pic, article, index, append){
-  var segment = article[index];
-  var pos = xmlParser.coordinates(segment);
+module.exports = {
+  process: co.wrap(function * (directory, article, output) {
+    var pic = path.resolve(directory, xmlParser.unwrap(article.pi)._ + '.jpg');
+    var articleGroup = xmlParser.unwrap(article.text);
+    var title = article.id[0];
 
-  if (article.length === 1) {
-    console.log('Finished section - ' + append);
-    return yield crop(pic, pos).writeAsync(append);
+    var tempFiles = [];
+    for (type in articleGroup) {
+      for (index in articleGroup[type]){
+        var section = articleGroup[type][index];
+        var pos = xmlParser.coordinates(section);
+        var cropped = crop(pic, pos);
+
+        var tempFile = tmp.fileSync();
+        console.log('Appended to file', tempFile.name);
+        yield cropped.writeAsync(tempFile.name);
+        tempFiles.push(tempFile.name)
+      }
+    }
+
+    var image = gm(tempFiles[0]);
+    for (var i = 1 ; i < tempFiles.length ; i++){
+      image.append(tempFiles[i]);
+    }
+
+    yield image.writeAsync(output + title + '.jpg');
+  })
+};
+
+function append(image, append){
+  if (!image){
+    return gm(append);
   }
-
-  yield (crop(pic, pos).writeAsync('tmp.jpg'));
-  console.log('Appending cropped image to ' + append)
-  yield (gm(append).append('tmp.jpg').writeAsync(append));
-
-  return yield (next(pic, article, index + 1, append));
-});
-
-function append(append, file){
-  if (!append) {
-    return gm(file);
-  }
-  return append.append(file);
+  return image.append(to);
 }
 
 function crop(pic, pos){
@@ -38,31 +52,3 @@ function crop(pic, pos){
     pos[1]
   );
 }
-
-function cleanup(title, textBlock){
-  var promises = [];
-  for (text in textBlock) {
-    promises.push(fs.unlinkAsync(output + title + '-' + text + '.jpg'));
-  }
-  return Promise.all(promises);
-}
-
-module.exports = {
-  process: co.wrap(function *(directory, article, output) {
-    var pic = path.resolve(directory, xmlParser.unwrap(article.pi)._ + '.jpg');
-    var textBlock = xmlParser.unwrap(article.text);
-    var title = article.ti[0];
-
-    for (text in textBlock) {
-      yield next(pic, textBlock[text], 0, output + title + '-' + text + '.jpg');
-    }
-
-    var result;
-    for (text in textBlock) {
-      result = append(result, output + title + '-' + text + '.jpg');
-      console.log('Appending all files into single article.');
-    }
-    yield result.writeAsync(output + title + '.jpg');
-    yield cleanup(title, textBlock)
-  })
-};

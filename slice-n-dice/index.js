@@ -1,15 +1,33 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
+
+var co = require('co');
+var walk = require('walk');
 
 var xmlParser = require('./xml-parser');
 var imageProcessing = require('./image-processing');
 
-var workingDirectory = '/Users/peter.clark/Code/FT-Labs-AWS-Archives/slice-n-dice';
-var directory = '/Users/peter.clark/Documents/1939/19390216/';
+var argv = require('yargs')
+    .usage('Usage: $0 --scan [directory] --output [num]')
+    .demand(['scan','output'])
+    .argv;
 
-xmlParser.run().then(function(data){
-  for (i in data.articles){
-    imageProcessing.process(data.articles[i]);
+var scan = argv.scan;
+var output = argv.output;
+
+console.log(scan);
+var walker = walk.walk(scan, {followLinks: false});
+
+walker.on("file", function(root, fileStat, next){
+  if (fileStat.name.endsWith('.xml')){
+    co(function * (){
+      var data = yield xmlParser.run(root + '/' + fileStat.name);
+      console.log('Processing', data.meta);
+      for (i in data.articles) {
+        imageProcessing.process(root, data.articles[i], output);
+      }
+    }).catch(function(err){
+      console.log(err);
+    });
   }
-}).catch(function(err){
-  console.log(err);
+  next();
 });

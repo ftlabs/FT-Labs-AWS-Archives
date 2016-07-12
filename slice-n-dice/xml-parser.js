@@ -2,10 +2,11 @@ var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs')),
   xml2js = Promise.promisifyAll(require('xml2js'))
   moment = require('moment');
+var path = require('path');
 
-function run(){
+function run(input){
   var parser = new xml2js.Parser();
-  return fs.readFileAsync(module.exports.input + 'FTDA-1939-0216.xml')
+  return fs.readFileAsync(input)
     .then(function(result){
       return parser.parseStringAsync(result);
     })
@@ -19,7 +20,11 @@ function run(){
         edition: issue.ed
       };
 
-      var articles = issue.page[0].article;
+      var articles = [];
+      for (var i = 0 ; i < issue.page.length ; i++){
+        articles = articles.concat(issue.page[i].article);
+      }
+
       return {
         meta: meta,
         articles: articles
@@ -42,7 +47,6 @@ function unwrap(obj){
 }
 
 module.exports = {
-  input: '/Users/peter.clark/Documents/1939/19390216/',
   run: run,
   coordinates: coordinates,
   unwrap: unwrap

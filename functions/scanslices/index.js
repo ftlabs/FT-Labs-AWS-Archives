@@ -8,6 +8,7 @@ const S3rver = require('s3rver');
 const argv = require('yargs').argv;
 const fs = require('fs');
 const validUrl = require('valid-url').isUri;
+const tmpPath = process.env.TMPPATH || './tmp/';
 var getReady = undefined;
 
 const tesseract = require('./lib/tesseract');
@@ -93,16 +94,18 @@ function scan(doc){
 
 }
 
-exports.handler = function(event, context){
+exports.myHandler = function(event, context, callback){
 	
-	const resourceID = event.key1;
+	const resourceID = event.resourceID;
+
+	console.log(event);
 
 	if(resourceID !== undefined){
 		// FTDA-1940-0706-0002-003
 		// Go and get the image from the URL, store it locally, and then pass it to tesseract
 
 		getReady.then(function(){
-			const destination = `./bin/tmp/in/${resourceID}.jpg`;
+			const destination = `${tmpPath}${resourceID}.jpg`;
 			const file = fs.createWriteStream(destination);
 			S3.getObject({
 				Bucket : 'articles',
@@ -121,6 +124,7 @@ exports.handler = function(event, context){
 
 						console.log(res);
 						// Send the data off to a database
+						callback();
 
 					})
 				;
@@ -128,6 +132,8 @@ exports.handler = function(event, context){
 
 		});
 
+	} else {
+		context.fail();
 	}
 
 }

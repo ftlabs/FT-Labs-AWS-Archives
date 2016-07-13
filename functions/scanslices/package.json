@@ -2,9 +2,9 @@
   "name": "slice-scanner",
   "version": "0.0.1",
   "description": "A simple Node app for a taking the contents of an S3 bucket, running them through Tesseract OCR, and placing the results in a database. ",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node main.js",
+    "start": "node index.js",
     "prepare": "mkdir -p ./bin && mkdir -p ./bin/s3 && mkdir -p ./bin/tmp && mkdir -p ./bin/tmp/out && mkdir -p ./bin/tmp/in",
     "test": "echo \"Sorry, no tests #Labs\"",
     "clean": "rm -rf ./bin && npm run prepare",

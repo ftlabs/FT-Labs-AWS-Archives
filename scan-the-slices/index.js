@@ -8,7 +8,7 @@ const S3rver = require('s3rver');
 const argv = require('yargs').argv;
 const fs = require('fs');
 const validUrl = require('valid-url').isUri;
-var First = undefined;
+var getReady = undefined;
 
 const tesseract = require('./lib/tesseract');
 
@@ -26,7 +26,7 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 	// We're going to fire up a fake S3 server
 	debug("In development environment. Firing up fake S3 server...");
 
-	First = new Promise( (resolve, reject) => {
+	getReady = new Promise( (resolve, reject) => {
 
 		const S3Server = new S3rver({
 			port : 7890,
@@ -53,7 +53,7 @@ if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
 	});
 
 } else {
-	First = new Promise.resolve();
+	getReady = new Promise.resolve();
 	tesseract.configure({
 		tessPath : './resources/tesseract'
 	});
@@ -101,7 +101,7 @@ exports.handler = function(event, context){
 		// FTDA-1940-0706-0002-003
 		// Go and get the image from the URL, store it locally, and then pass it to tesseract
 
-		First.then(function(){
+		getReady.then(function(){
 			const destination = `./bin/tmp/in/${resourceID}.jpg`;
 			const file = fs.createWriteStream(destination);
 			S3.getObject({

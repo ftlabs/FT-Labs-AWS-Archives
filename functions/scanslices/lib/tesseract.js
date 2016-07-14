@@ -5,7 +5,15 @@ const fs = require('fs');
 
 // 'batch.nochop', 'makebox'
 
-let tessPath = 'tesseract';
+const tmpPath = process.env.TMPPATH || '/tmp/';
+
+let tessPath = './resources/tess-data/tesseract';
+
+const LIB_DIR = `${__dirname}/../resources/tess-dir/lib/`;
+const SCRIPT_DIR = `${__dirname}/../resources/tess-dir/`;
+
+process.env['LD_LIBRARY_PATH'] = LIB_DIR;
+process.env["TESSDATA_PREFIX"] = SCRIPT_DIR;
 
 const tesseract = function(source, bounds){
 
@@ -13,7 +21,7 @@ const tesseract = function(source, bounds){
 
 		const randomOut = uuid();
 
-		const args = [source, `./bin/tmp/out/${randomOut}`];
+		const args = [source, `${tmpPath}${randomOut}`];
 		let format = 'txt';
 
 		if(bounds === true){
@@ -22,20 +30,33 @@ const tesseract = function(source, bounds){
 			format = 'box';
 		}
 
-		debug(args);
-
 		const tess = spawn(tessPath, args);
 		const buff = [];
 
+		tess.stdout.on('data', (data) => {
+			console.log(`stdout: ${data}`);
+		});
+
+		tess.stderr.on('data', (data) => {
+			console.log(`stderr: ${data}`);
+		});
+
 		tess.on('close', (code) => {
-			const outputDestination = `./bin/tmp/out/${randomOut}.${format}`
+			const outputDestination = `${tmpPath}${randomOut}.${format}`
+
+			console.log(outputDestination);
 
 			if(code === 1){
+				console.log('Tesseract exited with 1');
 				reject('Something went wrong with Tesseract');
-			} else if(code === 0){	
+			} else if(code === 0){
+				console.log("Tesseract closed and was happy")
 				fs.readFile(outputDestination, 'utf8', function (err, data) {
+					if(err){
+						console.log(err);
+					}
+					console.log("Data read from file:", data);
 					resolve( data );
-					fs.unlink(outputDestination);
 				});
 			}
 		});

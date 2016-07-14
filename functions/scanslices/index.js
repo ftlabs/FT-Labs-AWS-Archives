@@ -4,68 +4,74 @@ const dotenv = require('dotenv').config();
 
 const debug = require('debug')('scan-the-slices:main.js');
 const AWS = require("aws-sdk");
-const S3rver = require('s3rver');
 const argv = require('yargs').argv;
 const fs = require('fs');
 const validUrl = require('valid-url').isUri;
-const tmpPath = process.env.TMPPATH || './tmp/';
-var getReady = undefined;
+const tmpPath = process.env.TMPPATH || '/tmp/';
+var getReady = Promise.resolve();
 
 const tesseract = require('./lib/tesseract');
 
-const S3config = {
-	s3ForcePathStyle: true,
-	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-	endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT)
-}
+console.log(process.env);
 
-const S3 = new AWS.S3(S3config);
+const S3 = new AWS.S3();
 
-if(process.env.ENVIRONMENT === 'DEVELOPMENT'){
+function scan(doc, bounds){
+	console.log("Attempting scan of:", doc);
 
-	// We're going to fire up a fake S3 server
-	debug("In development environment. Firing up fake S3 server...");
+	bounds = bounds || false;
 
-	getReady = new Promise( (resolve, reject) => {
+	const scans = [tesseract.scan(doc, false)];
 
-		const S3Server = new S3rver({
-			port : 7890,
-			hostname: 'localhost',
-			silent: true,
-			directory: './bin/s3/'
-		}).run();
+	if(bounds){
+		scans.push( tesseract.scan(doc, true) );
+	}
 
-		S3.createBucket({
-			Bucket : 'articles'
-		}, function(){
-
-			S3.upload({
-				Bucket : 'articles',
-				Key : 'FTDA-1940-0706-0002-003',			
-				Body : fs.readFileSync('./resources/FTDA-1940-0706-0002-003.jpg')
-			}, function(){
-				resolve();
-				console.log('Test file successfully uploaded to fake S3 bucket');
-			});
-
-		});
-
-	});
-
-} else {
-	getReady = new Promise.resolve();
-	tesseract.configure({
-		tessPath : './resources/tesseract'
-	});
-}
-
-function scan(doc){
-	console.log(doc)
-	return tesseract.scan(doc, true)
+	return Promise.all(scans)
 		.then(res => {
-			fs.unlink(doc);
+
 			// Join words that are broken over two lines and remove all new lines from the document
+
+			console.log("Scan(s) completed:", res);
+
+			const formattedText = res[0][0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
+			var boundedText = undefined;
+
+			if(res.length > 1){
+
+				boundedText = res[1].split('\n');
+
+				boundedText.pop();
+				boundedText = boundedText.map(letterData => {
+					letterData = letterData.split(' ');
+					letterData.pop();
+					return {
+						'letter' : letterData.shift(),
+						'bounds' : letterData
+					};
+				});
+
+			}
+
+			const results = {
+				plain : formattedText,
+				bounds : boundedText || []
+			};
+			
+			return results;
+
+		})
+		.catch(err => {
+			console.log("Scan error:", err);
+		})
+	;
+
+	return tesseract.scan(doc, false)
+		.then(res => {
+
+			// Join words that are broken over two lines and remove all new lines from the document
+
+			console.log("Scan completed:", res);
 
 			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
 			var boundedText = res[1].split('\n');
@@ -87,29 +93,33 @@ function scan(doc){
 
 		})
 		.catch(err => {
-			console.log(err);
-			fs.unlink(doc);
+			console.log("Scan error:", err);
 		})
 	;
 
 }
 
-exports.myHandler = function(event, context, callback){
-	
-	const resourceID = event.resourceID;
+function lambda(event, context, callback){
 
 	console.log(event);
 
-	if(resourceID !== undefined){
+	const resource = event.resource;
+
+	tesseract.configure({
+		tessPath : process.env.TESSPATH
+	});
+
+	if(resource !== undefined){
 		// FTDA-1940-0706-0002-003
 		// Go and get the image from the URL, store it locally, and then pass it to tesseract
 
 		getReady.then(function(){
-			const destination = `${tmpPath}${resourceID}.jpg`;
+			const destination = `${tmpPath}${resource}`;
 			const file = fs.createWriteStream(destination);
+			console.log(destination)
 			S3.getObject({
-				Bucket : 'articles',
-				Key : resourceID
+				Bucket : 'ftlabs-archives-articles',
+				Key : resource
 			}).createReadStream().pipe(file);
 
 			file.on('error', function(e){
@@ -119,13 +129,19 @@ exports.myHandler = function(event, context, callback){
 
 			file.on('close', function(e){
 				console.log(`File recieved from S3 and written to ${destination}`);
-				scan(destination)
+				
+				scan(destination, false)
 					.then(res => {
 
+						console.log("Tesseract thinks it completed");
 						console.log(res);
 						// Send the data off to a database
 						callback();
 
+					})
+					.catch(err => {
+						console.log("Tesseract didn't like that...");
+						console.log(err);
 					})
 				;
 			});
@@ -133,7 +149,9 @@ exports.myHandler = function(event, context, callback){
 		});
 
 	} else {
-		context.fail();
+		console.log(`'resource' is undefined`);
 	}
 
 }
+
+exports.handle = lambda;

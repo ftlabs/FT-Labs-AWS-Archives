@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const tmpPath = process.env.TMPPATH || '/tmp/';
 
-let tessPath = './resources/tess-data/tesseract';
+let tessPath = './resources/tess-dir/tesseract';
 
 const LIB_DIR = `${__dirname}/../resources/tess-dir/lib/`;
 const SCRIPT_DIR = `${__dirname}/../resources/tess-dir/`;
@@ -72,13 +72,13 @@ module.exports = {
 		}
 
 	},
-	scan : function(source, bounds=false){
+	scan : function(source, bounds){
 
-		const scans = [];
+		bounds = bounds || false;
 
-		scans.push(tesseract(source, false));
-
-		if(bounds === true){
+		const scans = [tesseract(source, false)];
+		
+		if(bounds){
 			scans.push(tesseract(source, true));
 		}
 

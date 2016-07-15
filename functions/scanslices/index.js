@@ -21,20 +21,12 @@ function scan(doc, bounds){
 
 	bounds = bounds || false;
 
-	const scans = [tesseract.scan(doc, false)];
-
-	if(bounds){
-		scans.push( tesseract.scan(doc, true) );
-	}
-
-	return Promise.all(scans)
+	return tesseract.scan(doc, bounds)
 		.then(res => {
-
-			// Join words that are broken over two lines and remove all new lines from the document
 
 			console.log("Scan(s) completed:", res);
 
-			const formattedText = res[0][0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
+			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
 			var boundedText = undefined;
 
 			if(res.length > 1){
@@ -60,40 +52,11 @@ function scan(doc, bounds){
 			
 			return results;
 
-		})
-		.catch(err => {
-			console.log("Scan error:", err);
-		})
-	;
-
-	return tesseract.scan(doc, false)
-		.then(res => {
-
-			// Join words that are broken over two lines and remove all new lines from the document
-
-			console.log("Scan completed:", res);
-
-			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
-			var boundedText = res[1].split('\n');
-
-			boundedText.pop();
-			boundedText = boundedText.map(letterData => {
-				letterData = letterData.split(' ');
-				letterData.pop();
-				return {
-					'letter' : letterData.shift(),
-					'bounds' : letterData
-				};
-			});
-
-			return {
-				plain : formattedText, 
-				bounds : boundedText
-			};
 
 		})
 		.catch(err => {
-			console.log("Scan error:", err);
+			console.log("An error was thrown whilst scanning the document", err);
+
 		})
 	;
 
@@ -132,7 +95,7 @@ function lambda(event, context, callback){
 			file.on('close', function(e){
 				console.log(`File recieved from S3 and written to ${destination}`);
 				
-				scan(destination, false)
+				scan(destination, true)
 					.then(res => {
 
 						console.log("Tesseract thinks it completed");

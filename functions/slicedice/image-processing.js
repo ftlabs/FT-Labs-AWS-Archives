@@ -9,7 +9,12 @@ var fs = Promise.promisifyAll(require('fs'));
 Promise.promisifyAll(gm.prototype);
 
 module.exports = {
-  process: co.wrap(function * (directory, article, output) {
+  process: co.wrap(function * (directory, article) {
+
+    if(article.pi === undefined){
+      yield undefined;
+    }
+
     var pic = path.resolve(directory, xmlParser.unwrap(article.pi)._ + '.jpg');
     var articleGroup = xmlParser.unwrap(article.text);
     var title = article.id[0];
@@ -24,16 +29,19 @@ module.exports = {
         var tempFile = tmp.fileSync();
         console.log('Appended to file', tempFile.name);
         yield cropped.writeAsync(tempFile.name);
-        tempFiles.push(tempFile.name)
+        tempFiles.push(tempFile.name);
       }
     }
+
+    console.log(tempFiles[0]);
 
     var image = gm(tempFiles[0]);
     for (var i = 1 ; i < tempFiles.length ; i++){
       image.append(tempFiles[i]);
     }
 
-    yield image.writeAsync(output + title + '.jpg');
+    yield image.writeAsync(`/tmp/${title}.jpg`);
+
   })
 };
 
@@ -45,6 +53,7 @@ function append(image, append){
 }
 
 function crop(pic, pos){
+  console.log("CROP:", pic);
   return gm(pic).crop(
     pos[2] - pos[0],
     pos[3] - pos[1],

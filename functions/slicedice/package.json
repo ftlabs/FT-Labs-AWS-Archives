@@ -1,8 +1,10 @@
 {
   "dependencies": {
     "async": "^2.0.0-rc.6",
+    "aws-sdk": "^2.4.7",
     "bluebird": "^3.4.1",
     "co": "^4.6.0",
+    "dotenv": "^2.0.0",
     "gm": "^1.22.0",
     "home": "^1.0.1",
     "moment": "^2.14.1",

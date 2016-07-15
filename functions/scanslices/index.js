@@ -103,6 +103,8 @@ function lambda(event, context, callback){
 
 	console.log(event);
 
+	console.log("Log Group Name", context.logGroupName, "Log Stream Name", context.logStreamName);
+
 	const resource = event.resource;
 
 	tesseract.configure({

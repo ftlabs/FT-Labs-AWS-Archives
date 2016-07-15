@@ -55,7 +55,6 @@ const tesseract = function(source, bounds){
 					if(err){
 						console.log(err);
 					}
-					console.log("Data read from file:", data);
 					resolve( data );
 				});
 			}

@@ -23,6 +23,9 @@ module.exports = {
     for (type in articleGroup) {
       for (index in articleGroup[type]){
         var section = articleGroup[type][index];
+
+        console.log(`articleGroup[${type}][${index}]`);
+
         var pos = xmlParser.coordinates(section);
         var cropped = crop(pic, pos);
 

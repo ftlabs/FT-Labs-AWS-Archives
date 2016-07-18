@@ -1,0 +1,28 @@
+{
+  "name": "cut",
+  "version": "0.0.1",
+  "description": "A lambda function that takes an image and an object describing areas to crop within that image",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sean M. Tracey & Pete Clark",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^2.0.0-rc.6",
+    "aws-sdk": "^2.4.7",
+    "bluebird": "^3.4.1",
+    "co": "^4.6.0",
+    "debug": "^2.2.0",
+    "dotenv": "^2.0.0",
+    "gm": "^1.22.0",
+    "home": "^1.0.1",
+    "moment": "^2.14.1",
+    "node-babel": "^0.1.2",
+    "tmp": "0.0.28",
+    "uuid": "^2.0.2",
+    "walk": "^2.3.9",
+    "xml2js": "^0.4.17",
+    "yargs": "^4.8.0"
+  }
+}

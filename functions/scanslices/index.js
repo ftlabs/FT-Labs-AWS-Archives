@@ -6,7 +6,6 @@ const debug = require('debug')('scan-the-slices:main.js');
 const AWS = require("aws-sdk");
 const argv = require('yargs').argv;
 const fs = require('fs');
-const validUrl = require('valid-url').isUri;
 const tmpPath = process.env.TMPPATH || '/tmp/';
 var getReady = Promise.resolve();
 

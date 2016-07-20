@@ -1,0 +1,8 @@
+{
+	"name": "slice-scanner",
+	"description": "A simple Node app for a taking the contents of an S3 bucket, running them through Tesseract OCR, and placing the results in a database. ",
+	"runtime": "nodejs4.3",
+	"memory": 256,
+	"timeout": 150,
+	"role": "arn:aws:iam::810385116814:role/test_lambda_function"
+}

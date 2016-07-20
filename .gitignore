@@ -4,3 +4,9 @@ scan-the-slices/bin/s3/*
 scan-the-slices/npm-debug.log
 scan-the-slices/.DS_Store
 scan-the-slices/bin/tmp/*
+functions/scanslices/node_modules
+functions/slicedice/node_modules
+functions/identify/node_modules
+functions/identify/.env
+functions/findxml/node_modules
+functions/findxml/.env

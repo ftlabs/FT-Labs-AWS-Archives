@@ -1,0 +1,8 @@
+{
+	"name": "cut",
+	"description": "A lambda function that takes an XML file, gets the pages of the newspaper it describes, seperates the bounds for the articles in the page and then sends them off for cropping ",
+	"runtime": "nodejs4.3",
+	"memory": 256,
+	"timeout": 150,
+	"role": "arn:aws:iam::810385116814:role/test_lambda_function"
+}

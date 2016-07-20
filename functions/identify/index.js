@@ -10,9 +10,32 @@ const co = require('co');
 const fs = require('fs');
 const tmpPath = process.env.TMPPATH || '/tmp/';
 
-const  xmlParser = require('./xml-parser');
+const xmlParser = require('./xml-parser');
 
 const S3 = new AWS.S3();
+const SQS = new AWS.SQS({region:'us-west-2'}); 
+
+function addArticleToQueue(d){
+
+	return new Promise( (resolve, reject) => {
+
+		SQS.sendMessage({
+			MessageBody : JSON.stringify(d),
+			QueueUrl : process.env.AWS_QUEUE_ENDPOINT
+		}, function(err, data){
+
+			if(err){
+				console.log("SQS Error:", err);
+				reject()
+			} else {
+				resolve();				
+			}
+
+		});
+
+	});
+	
+}
 
 function lambda(event, context, callback){
 	
@@ -20,7 +43,7 @@ function lambda(event, context, callback){
 
 	const random = uuid();
 
-	const XMLSrc = event.XML;
+	const XMLSrc = event.Records[0].s3.object.key;
 	const XMLPath = XMLSrc.substring(0, XMLSrc.lastIndexOf("/") + 1);	
 	const XMLName = XMLSrc.substring(XMLSrc.lastIndexOf("/") + 1);
 
@@ -44,11 +67,30 @@ function lambda(event, context, callback){
 		
 		co(function * (){
 			var data = yield xmlParser.run(destination);
-
+			var totalArticleCount = 0;
 			data.pages.forEach(page => {
+				console.log("This page has", page.articles.length, 'articles');
+				totalArticleCount += page.articles.length;
 				page.articles.forEach(article => {
-					console.log(article);
-					
+					if(article.text){
+						
+						const data = {
+							id : xmlParser.unwrap(article.id),
+							coordinates : xmlParser.unwrap(article.text)['text.cr'].map(t => {
+								return xmlParser.coordinates(t);
+							}),
+							title : article.ti[0],
+							taglines : article.ta
+						};
+
+						addArticleToQueue(data)
+							.catch(err => {
+								console.log("An error occurred posting a message to the SQS queue", err);
+							})
+						;
+
+					}
+
 				});
 			})
 
@@ -60,6 +102,6 @@ function lambda(event, context, callback){
 
 exports.handle = lambda;
 
-lambda({
+/*lambda({
 	"XML" : "1939/19390105/FTDA-1939-0105.xml"
-});
+});*/

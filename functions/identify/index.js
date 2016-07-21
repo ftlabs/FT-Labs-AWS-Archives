@@ -13,7 +13,7 @@ const tmpPath = process.env.TMPPATH || '/tmp/';
 const xmlParser = require('./xml-parser');
 
 const S3 = new AWS.S3();
-const SQS = new AWS.SQS({region:'us-west-2'}); 
+const SQS = new AWS.SQS({region:'us-west-2'});
 
 function addArticleToQueue(d){
 
@@ -76,6 +76,7 @@ function lambda(event, context, callback){
 						
 						const data = {
 							id : xmlParser.unwrap(article.id),
+							path : XMLPath,
 							coordinates : xmlParser.unwrap(article.text)['text.cr'].map(t => {
 								return xmlParser.coordinates(t);
 							}),

@@ -3,48 +3,42 @@ var gm = require('gm');
 var path = require('path');
 var co = require('co');
 var tmp = require('tmp');
+const random = require('uuid').v4;
 
-var xmlParser = Promise.promisifyAll(require('./xml-parser'));
 var fs = Promise.promisifyAll(require('fs'));
 Promise.promisifyAll(gm.prototype);
 
 module.exports = {
-  process: co.wrap(function * (directory, article) {
+  process: co.wrap(function * (filePath, coordinates) {
 
-    if(article.pi === undefined){
-      yield undefined;
-    }
+    var pic = filePath;
 
-    var pic = path.resolve(directory, xmlParser.unwrap(article.pi)._ + '.jpg');
-    var articleGroup = xmlParser.unwrap(article.text);
-    var title = article.id[0];
+    console.log(pic);
 
     var tempFiles = [];
-    for (type in articleGroup) {
-      for (index in articleGroup[type]){
-        var section = articleGroup[type][index];
-
-        console.log(`articleGroup[${type}][${index}]`);
-
-        var pos = xmlParser.coordinates(section);
-        var cropped = crop(pic, pos);
-
-        var tempFile = tmp.fileSync();
-        console.log('Appended to file', tempFile.name);
-        yield cropped.writeAsync(tempFile.name);
-        tempFiles.push(tempFile.name);
-      }
+    for ( var i = 0; i < coordinates.length; i += 1 ) {
+      var bounds = coordinates[i];
+      console.log(bounds);
+      var cropped = crop(pic, bounds);
+      var tempFile = tmp.fileSync({
+        dir : '/tmp'
+      });
+      console.log('Appended to file', tempFile.name);
+      yield cropped.writeAsync(tempFile.name);
+      tempFiles.push(tempFile.name);
     }
 
-    console.log(tempFiles[0]);
+    console.log("The first temp file:", tempFiles[0]);
 
     var image = gm(tempFiles[0]);
     for (var i = 1 ; i < tempFiles.length ; i++){
       image.append(tempFiles[i]);
     }
 
-    yield image.writeAsync(`/tmp/${title}.jpg`);
-
+    const stitchOutputPath = `/tmp/${random()}.jpg`;
+    yield image.writeAsync(stitchOutputPath);
+    console.log("We've been stitched up at:", stitchOutputPath);
+    return stitchOutputPath;
   })
 };
 

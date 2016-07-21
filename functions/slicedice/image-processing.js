@@ -35,10 +35,13 @@ module.exports = {
       image.append(tempFiles[i]);
     }
 
-    const stitchOutputPath = `/tmp/${random()}.jpg`;
+    const finalName = random();
+    const stitchOutputPath = `/tmp/${finalName}.jpg`;
     yield image.writeAsync(stitchOutputPath);
     console.log("We've been stitched up at:", stitchOutputPath);
-    return stitchOutputPath;
+    return {
+      path : stitchOutputPath
+    };
   })
 };
 

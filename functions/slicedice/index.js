@@ -13,7 +13,6 @@ const tmpPath = process.env.TMPPATH || '/tmp/';
 const AWS = require('aws-sdk');
 const S3 = new AWS.S3();
 
-
 function lambda(event, context, callback){
 
 	console.log(event);
@@ -45,6 +44,25 @@ function lambda(event, context, callback){
 		imageProcessing.process(destination, articleSections)
 			.then(img => {
 				console.log('img:', img);
+
+				fs.readFile(img.path, (err, data) => {
+					if(err){
+						console.log("Error reading spliced image:", err);
+					} else {
+	
+						new AWS.S3({
+							params : {
+								Bucket : 'ftlabs-archives-snippets',
+								Key : `${event.id}.jpg`
+							}
+						}).upload({Body : data}, function(){
+							console.log(`Snippet ${event.id}.jpg successfully uploaded`);
+						});
+
+					}
+
+				});
+
 			})
 		;
 	});

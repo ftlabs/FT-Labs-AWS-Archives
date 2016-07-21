@@ -10,3 +10,4 @@ functions/identify/node_modules
 functions/identify/.env
 functions/findxml/node_modules
 functions/findxml/.env
+functions/slicedice/.env

@@ -1,0 +1,24 @@
+{
+  "name": "sqs_handler",
+  "version": "0.0.1",
+  "description": "A node.js app for taking messages off of an SQS queue and firing up a Lambda function to handle them",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'Sorry, no tests'"
+  },
+  "keywords": [
+    "FT",
+    "Labs",
+    "SQS",
+    "AWS",
+    "Archives"
+  ],
+  "author": "Sean M. Tracey",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.4.8"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}

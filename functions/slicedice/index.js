@@ -5,7 +5,7 @@ var co = require('co');
 const dotenv = require('dotenv').config();
 const uuid = require('uuid').v4;
 
-var imageProcessing = require('./image-processing');
+var imageProcessing = require('./lib/image-processing');
 
 const tmpPath = process.env.TMPPATH || '/tmp/';
 
@@ -51,36 +51,48 @@ function lambda(event, context, callback){
 
 	file.on('close', function(e){
 		console.log(`File recieved from S3 and written to ${destination}`);
-		imageProcessing.process(destination, articleSections)
-			.then(img => {
-				console.log('img:', img);
 
-				fs.readFile(img.path, (err, data) => {
-					if(err){
-						console.log("Error reading spliced image:", err);
-					} else {
-						console.log("Spliced image read from disk:", img.path);
-						new AWS.S3({
-							params : {
-								Bucket : 'ftlabs-archives-snippets',
-								Key : `${event.id}.jpg`
+		imageProcessing.ready()
+			.then(function(){
+
+				return imageProcessing.process(destination, articleSections)
+					.then(img => {
+						console.log('img:', img);
+
+						fs.readFile(img.path, (err, data) => {
+							if(err){
+								console.log("Error reading spliced image:", err);
+							} else {
+								console.log("Spliced image read from disk:", img.path);
+								new AWS.S3({
+									params : {
+										Bucket : 'ftlabs-archives-snippets',
+										Key : `${event.id}.jpg`
+									}
+								}).upload({Body : data}, function(){
+									console.log(`Snippet ${event.id}.jpg successfully uploaded`);
+									callback();
+								});
+
 							}
-						}).upload({Body : data}, function(){
-							console.log(`Snippet ${event.id}.jpg successfully uploaded`);
-							callback();
+
 						});
+		
+						console.log("Got past the sync reading of the image");
 
-					}
-
-				});
- 
-				console.log("Got past the sync reading of the image");
+					})
+					.catch(err => {
+						console.log("ERR:", err);
+					})
+				;
 
 			})
 			.catch(err => {
-				console.log("ERR:", err);
+				console.log("Error readying tar:", err);
 			})
 		;
+
+		
 	});
 }
 

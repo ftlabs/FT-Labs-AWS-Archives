@@ -17,8 +17,8 @@ function sendMessageToSNSForLambda(message){
 		numberOfMessagesInFlight += 1;
 		SNS.publish({
 				TargetArn:'arn:aws:sns:us-west-2:810385116814:ftlabs-archives-sns', 
-				Message: JSON.stringify(message)
-			}, 
+				Message: message
+			},
 			function(err,data){
 				if (err){
 					reject(err, message);

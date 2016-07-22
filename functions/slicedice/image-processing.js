@@ -1,5 +1,17 @@
+// Imagemagick binary acquired from:
+// https://github.com/DoubleDor/imagemagick-prebuilt/releases
+
+const gmPaths = [
+  `${__dirname}/../resources/imagemagick/lib`,
+  `${__dirname}/../resources/imagemagick/bin`,
+];
+
+console.log("PATH:", process.env['PATH']);
+process.env['PATH'] += `:${gmPaths.join(':')}`;
+console.log("ADJ PATH:", process.env['PATH']);
+
 var Promise = require('bluebird');
-var gm = require('gm');
+var gm = require('gm').subClass({imageMagick: true});
 var path = require('path');
 var co = require('co');
 var tmp = require('tmp');
@@ -12,9 +24,7 @@ module.exports = {
   process: co.wrap(function * (filePath, coordinates) {
 
     var pic = filePath;
-
     console.log(pic);
-
     var tempFiles = [];
     for ( var i = 0; i < coordinates.length; i += 1 ) {
       var bounds = coordinates[i];
@@ -25,7 +35,9 @@ module.exports = {
       });
       console.log('Appended to file', tempFile.name);
       yield cropped.writeAsync(tempFile.name);
+      console.log("Got past yield...");
       tempFiles.push(tempFile.name);
+      console.log("tempFiles.length:", tempFiles.length);
     }
 
     console.log("The first temp file:", tempFiles[0]);

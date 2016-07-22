@@ -16,7 +16,8 @@
   "author": "Sean M. Tracey",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.4.8"
+    "aws-sdk": "^2.4.8",
+    "dotenv": "^2.0.0"
   },
   "engines": {
     "node": ">=6.0.0"

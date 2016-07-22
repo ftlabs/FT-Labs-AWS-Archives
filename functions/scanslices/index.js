@@ -67,7 +67,9 @@ function lambda(event, context, callback){
 
 	console.log("Log Group Name", context.logGroupName, "Log Stream Name", context.logStreamName);
 
-	const resource = event.resource;
+	const resource = event.Records[0].s3;
+
+	console.log("Resource:", resource);
 
 	tesseract.configure({
 		tessPath : process.env.TESSPATH
@@ -82,7 +84,7 @@ function lambda(event, context, callback){
 			const file = fs.createWriteStream(destination);
 			console.log(destination)
 			S3.getObject({
-				Bucket : 'ftlabs-archives-articles',
+				Bucket : 'ftlabs-archives-snippets',
 				Key : resource
 			}).createReadStream().pipe(file);
 

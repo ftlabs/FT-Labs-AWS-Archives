@@ -4,5 +4,5 @@
 	"runtime": "nodejs4.3",
 	"memory": 256,
 	"timeout": 150,
-	"role": "arn:aws:iam::810385116814:role/test_lambda_function"
+	"role": "arn:aws:iam::810385116814:role/ftlabs-archives-object-creation"
 }

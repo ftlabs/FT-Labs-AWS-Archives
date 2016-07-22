@@ -12,3 +12,4 @@ functions/findxml/node_modules
 functions/findxml/.env
 functions/slicedice/.env
 sqs_handler/node_modules
+sqs_handler/.env

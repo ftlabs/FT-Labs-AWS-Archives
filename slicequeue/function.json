@@ -1,0 +1,8 @@
+{
+	"name": "slice-n-dice",
+	"description": "A simple Node app that recieves an FT Archive XML file describing the locations of articles across issues, retrives the full pages from S3, cuts it up into it's component parts, and then puts those parts back into S3.",
+	"runtime": "nodejs4.3",
+	"memory": 256,
+	"timeout": 150,
+	"role": "arn:aws:iam::810385116814:role/ftlabs-archives-object-creation"
+}

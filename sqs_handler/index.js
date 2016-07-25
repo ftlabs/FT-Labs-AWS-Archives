@@ -30,7 +30,6 @@ function sendMessageToSNSForLambda(message){
 
 	});
 	
-	
 }
 
 const sqsConsumer = Consumer.create({

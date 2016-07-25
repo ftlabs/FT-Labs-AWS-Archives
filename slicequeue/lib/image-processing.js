@@ -11,7 +11,7 @@ process.env['PATH'] += `:${gmPaths.join(':')}`;
 console.log("ADJ PATH:", process.env['PATH']);*/
 
 var Promise = require('bluebird');
-var gm = require('gm').subClass({imageMagick: true});
+var gm = require('gm');
 var path = require('path');
 var co = require('co');
 var tmp = require('tmp');

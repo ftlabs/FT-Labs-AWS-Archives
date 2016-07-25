@@ -15,7 +15,6 @@ var gm = require('gm').subClass({imageMagick: true});
 var path = require('path');
 var co = require('co');
 var tmp = require('tmp');
-const tar = require('./tar');
 const random = require('uuid').v4;
 
 var fs = Promise.promisifyAll(require('fs'));
@@ -55,12 +54,7 @@ module.exports = {
     return {
       path : stitchOutputPath
     };
-  }),
-  ready: function(){
-
-    return tar.extract(`${__dirname}/../resources/imagemagick.tar.gz`);
-
-  }
+  })
 };
 
 function append(image, append){

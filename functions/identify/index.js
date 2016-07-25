@@ -26,7 +26,7 @@ function addArticleToQueue(d){
 
 			if(err){
 				console.log("SQS Error:", err);
-				reject()
+				reject(err);
 			} else {
 				resolve();				
 			}

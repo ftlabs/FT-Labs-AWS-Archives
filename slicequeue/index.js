@@ -38,7 +38,7 @@ function addScanToQueue(d){
 
 const sqsConsumer = Consumer.create({
 	queueUrl : 'https://sqs.us-west-2.amazonaws.com/810385116814/ftlabs-archive-xml-queue',
-	batchSize : 5,
+	batchSize : 1,
 	handleMessage : (message, done) => {
 
 		console.log("\n\nMessage recieved", new Date());

@@ -11,8 +11,6 @@ var getReady = Promise.resolve();
 
 const tesseract = require('./lib/tesseract');
 
-console.log(process.env);
-
 AWS.config.update({
   region: "us-west-2"
 });
@@ -20,41 +18,6 @@ AWS.config.update({
 const S3 = new AWS.S3();
 const Consumer = require('sqs-consumer');
 const Dynamo = new AWS.DynamoDB.DocumentClient();
-
-function wait(ms){
-	return new Promise( (resolve, reject) => {
-		setTimeout(function(){
-			resolve();
-		}, ms);
-	} );
-}
-
-function addResultsToDatabase(data){
-	
-	const package = {
-		TableName : 'ftlabs-archives-scan-results',
-		Item : data
-	};
-
-	console.log('\n\n\n\n\n', package);
-
-	return new Promise( (resolve, reject) => {
-		
-		Dynamo.put(package, (err, result) => {
-
-			if(err){
-				reject(err);
-			} else {
-				console.log('OCR results for resource', data.id, 'successfully added to DynamoDB');
-				resolve();
-			}
-
-		});
-
-	} );
-
-
-}
 
 function scan(doc, bounds){
 	console.log("Attempting scan of:", doc);
@@ -151,15 +114,16 @@ const sqsConsumer = Consumer.create({
 
 							data.OCRResults = res;
 
-							addResultsToDatabase(data)
-								.then(function(){
-									done();
-								})
-								.catch(err => {
-									console.log('Failed to OCR to DynamoDB', err);									
-									console.log(err);
-								})
-							;
+							new AWS.S3({
+								params : {
+									Bucket : 'ftlabs-archives-results',
+									Key : `${data.id}.json`
+								}
+							}).upload({Body : JSON.stringify(data)}, function(){
+								console.log("JSON successfully added to S3 Bucket");
+								done();
+							});
+							
 							// Send the data off to a database
 
 						})

@@ -14,6 +14,7 @@ const tesseract = require('./lib/tesseract');
 console.log(process.env);
 
 const S3 = new AWS.S3();
+const Consumer = require('sqs-consumer');
 
 function scan(doc, bounds){
 	console.log("Attempting scan of:", doc);
@@ -61,63 +62,78 @@ function scan(doc, bounds){
 
 }
 
-function lambda(event, context, callback){
+const sqsConsumer = Consumer.create({
+	queueUrl : 'https://sqs.us-west-2.amazonaws.com/810385116814/ftlabs-archive-scan-queue',
+	batchSize : 1,
+	handleMessage : (message, done) => {
 
-	console.log(event);
+		// console.log("Log Group Name", context.logGroupName, "Log Stream Name", context.logStreamName);
 
-	console.log("Log Group Name", context.logGroupName, "Log Stream Name", context.logStreamName);
+		const resource = `${JSON.parse(message.Body).id}.jpg`;
 
-	const resource = event.Records[0].s3;
+		console.log("Resource:", resource);
 
-	console.log("Resource:", resource);
-
-	tesseract.configure({
-		tessPath : process.env.TESSPATH
-	});
-
-	if(resource !== undefined){
-		// FTDA-1940-0706-0002-003
-		// Go and get the image from the URL, store it locally, and then pass it to tesseract
-
-		getReady.then(function(){
-			const destination = `${tmpPath}${resource}`;
-			const file = fs.createWriteStream(destination);
-			console.log(destination)
-			S3.getObject({
-				Bucket : 'ftlabs-archives-snippets',
-				Key : resource
-			}).createReadStream().pipe(file);
-
-			file.on('error', function(e){
-				console.log("error event");
-				console.log(e);
-			});
-
-			file.on('close', function(e){
-				console.log(`File recieved from S3 and written to ${destination}`);
-				
-				scan(destination, true)
-					.then(res => {
-
-						console.log("Tesseract thinks it completed");
-						console.log(res);
-						// Send the data off to a database
-						callback();
-
-					})
-					.catch(err => {
-						console.log("Tesseract didn't like that...");
-						console.log(err);
-					})
-				;
-			});
-
+		tesseract.configure({
+			tessPath : process.env.TESSPATH
 		});
 
-	} else {
-		console.log(`'resource' is undefined`);
+		if(resource !== undefined){
+			// FTDA-1940-0706-0002-003
+			// Go and get the image from the URL, store it locally, and then pass it to tesseract
+
+			getReady.then(function(){
+				const destination = `${tmpPath}${resource}`;
+				const file = fs.createWriteStream(destination);
+				console.log(destination)
+				S3.getObject({
+					Bucket : 'ftlabs-archives-snippets',
+					Key : resource
+				}).createReadStream().pipe(file);
+
+				file.on('error', function(e){
+					console.log("error event");
+					console.log(e);
+				});
+
+				file.on('close', function(e){
+					console.log(`File recieved from S3 and written to ${destination}`);
+					
+					scan(destination, true)
+						.then(res => {
+
+							console.log("Tesseract thinks it completed");
+							console.log(res);
+							// Send the data off to a database
+							done();
+
+						})
+						.catch(err => {
+							console.log("Tesseract didn't like that...");
+							console.log(err);
+						})
+					;
+				});
+
+			});
+
+		} else {
+			console.log(`'resource' is undefined`);
+		}
+
 	}
+});
 
-}
+sqsConsumer.on('error', function(err){
 
-exports.handle = lambda;
+	console.log("An error has occurred with the SQS Consumer:", err);
+
+});
+
+sqsConsumer.start();
+
+
+
+
+
+
+

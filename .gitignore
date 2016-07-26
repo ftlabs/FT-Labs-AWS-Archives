@@ -15,3 +15,5 @@ sqs_handler/node_modules
 sqs_handler/.env
 slicequeue/node_modules
 slicequeue/.env
+scanqueue/.env
+scanqueue/node_modules

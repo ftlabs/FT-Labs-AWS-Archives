@@ -1,8 +1,0 @@
-{
-	"name": "findxml",
-	"description": "A Lambda function that is triggered when content is uploaded to S3 and searches for an XML that describes the content of the newspaper",
-	"runtime": "nodejs4.3",
-	"memory": 256,
-	"timeout": 240,
-	"role": "arn:aws:iam::810385116814:role/test_lambda_function"
-}

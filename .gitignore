@@ -17,3 +17,4 @@ slicequeue/node_modules
 slicequeue/.env
 scanqueue/.env
 scanqueue/node_modules
+scanqueue/resources/tess-dir/lib

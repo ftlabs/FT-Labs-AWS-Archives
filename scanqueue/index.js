@@ -13,8 +13,48 @@ const tesseract = require('./lib/tesseract');
 
 console.log(process.env);
 
+AWS.config.update({
+  region: "us-west-2"
+});
+
 const S3 = new AWS.S3();
 const Consumer = require('sqs-consumer');
+const Dynamo = new AWS.DynamoDB.DocumentClient();
+
+function wait(ms){
+	return new Promise( (resolve, reject) => {
+		setTimeout(function(){
+			resolve();
+		}, ms);
+	} );
+}
+
+function addResultsToDatabase(data){
+	
+	const package = {
+		TableName : 'ftlabs-archives-scan-results',
+		Item : data
+	};
+
+	console.log('\n\n\n\n\n', package);
+
+	return new Promise( (resolve, reject) => {
+		
+		Dynamo.put(package, (err, result) => {
+
+			if(err){
+				reject(err);
+			} else {
+				console.log('OCR results for resource', data.id, 'successfully added to DynamoDB');
+				resolve();
+			}
+
+		});
+
+	} );
+
+
+}
 
 function scan(doc, bounds){
 	console.log("Attempting scan of:", doc);
@@ -68,8 +108,8 @@ const sqsConsumer = Consumer.create({
 	handleMessage : (message, done) => {
 
 		// console.log("Log Group Name", context.logGroupName, "Log Stream Name", context.logStreamName);
-
-		const resource = `${JSON.parse(message.Body).id}.jpg`;
+		const data = JSON.parse(message.Body);
+		const resource = `${data.id}.jpg`;
 
 		console.log("Resource:", resource);
 
@@ -101,10 +141,26 @@ const sqsConsumer = Consumer.create({
 					scan(destination, true)
 						.then(res => {
 
+							const plainSize = Buffer.byteLength(res.plain, 'utf8') / 1000;
+							const boundSize = Buffer.byteLength( JSON.stringify( res.bounds ), 'utf8') / 1000;
+
 							console.log("Tesseract thinks it completed");
-							console.log(res);
+							console.log("The plain results size is:", plainSize, "Kb");
+							console.log("The bounds results size is:", boundSize, "Kb");
+							// console.log(res);
+
+							data.OCRResults = res;
+
+							addResultsToDatabase(data)
+								.then(function(){
+									done();
+								})
+								.catch(err => {
+									console.log('Failed to OCR to DynamoDB', err);									
+									console.log(err);
+								})
+							;
 							// Send the data off to a database
-							done();
 
 						})
 						.catch(err => {

@@ -102,7 +102,3 @@ function lambda(event, context, callback){
 }
 
 exports.handle = lambda;
-
-/*lambda({
-	"XML" : "1939/19390105/FTDA-1939-0105.xml"
-});*/

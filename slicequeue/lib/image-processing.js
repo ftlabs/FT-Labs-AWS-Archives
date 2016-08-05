@@ -46,6 +46,9 @@ module.exports = {
     const stitchOutputPath = `/tmp/${finalName}.jpg`;
     yield image.writeAsync(stitchOutputPath);
     console.log("We've been stitched up at:", stitchOutputPath);
+    tempFiles.forEach(t => { 
+      fs.unlinkSync(t);
+    });
     return {
       path : stitchOutputPath
     };

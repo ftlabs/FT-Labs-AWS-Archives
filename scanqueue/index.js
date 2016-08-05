@@ -27,7 +27,7 @@ function scan(doc, bounds){
 	return tesseract.scan(doc, bounds)
 		.then(res => {
 
-			console.log("Scan(s) completed:", res);
+			console.log("Scan(s) completed.");
 
 			const formattedText = res[0].replace(/-\n/g, ' ').replace(/\n/g, ' ');
 			var boundedText = undefined;
@@ -121,6 +121,7 @@ const sqsConsumer = Consumer.create({
 								}
 							}).upload({Body : JSON.stringify(data)}, function(){
 								console.log("JSON successfully added to S3 Bucket");
+								fs.unlinkSync(destination);
 								done();
 							});
 							

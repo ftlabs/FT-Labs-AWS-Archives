@@ -56,6 +56,11 @@ const tesseract = function(source, bounds){
 						console.log(err);
 					}
 					resolve( data );
+					fs.unlink(outputDestination, err => {
+						if(err){
+							console.log("There was an error deleting the OCR content from the disk", outputDestination);
+						}
+					})
 				});
 			}
 		});

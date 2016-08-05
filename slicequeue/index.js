@@ -94,13 +94,15 @@ const sqsConsumer = Consumer.create({
 								return addScanToQueue(data)
 									.then(function(){
 										console.log("Item added to the queue for scanning");
+										fs.unlinkSync(img.path);
+										fs.unlinkSync(destination);
 										done();
 									})
 									.catch(err => {
 										console.log("Error adding message to the scan queue", err);
 									})
 								;
-								
+
 							});
 
 						}
